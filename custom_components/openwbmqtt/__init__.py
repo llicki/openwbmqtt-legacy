@@ -3,6 +3,7 @@ import logging
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
+from homeassistant.components import mqtt
 
 # Import global values.
 from .const import DOMAIN, PLATFORMS
@@ -24,11 +25,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
         if call.data.get("selected_status") == "On":
             payload = str(1)
-            hass.components.mqtt.publish(hass, topic, payload)
+            mqtt.publish(hass, topic, payload)
 
         else:
             payload = str(0)
-            hass.components.mqtt.publish(hass, topic, payload)
+            mqtt.publish(hass, topic, payload)
 
     def fun_change_global_charge_mode(call):
         """Change the wallbox global charge mode --> set/ChargeMode [0, .., 3]."""
@@ -45,7 +46,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             payload = str(3)
         else:
             payload = str(4)
-        hass.components.mqtt.publish(hass, topic, payload)
+        mqtt.publish(hass, topic, payload)
 
     def fun_change_charge_limitation_per_cp(call):
         """If box is in state 'Sofortladen', the charge limitation can be finetuned.
@@ -60,19 +61,19 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
         if call.data.get("charge_limitation") == "Not limited":
             payload = str(0)
-            hass.components.mqtt.publish(hass, topic, payload)
+            mqtt.publish(hass, topic, payload)
         elif call.data.get("charge_limitation") == "kWh":
             payload = str(1)
             topic2 = f"{call.data.get('mqtt_prefix')}/config/set/sofort/lp/{call.data.get('charge_point_id')}/energyToCharge"
             payload2 = str(call.data.get("energy_to_charge"))
-            hass.components.mqtt.publish(hass, topic, payload)
-            hass.components.mqtt.publish(hass, topic2, payload2)
+            mqtt.publish(hass, topic, payload)
+            mqtt.publish(hass, topic2, payload2)
         elif call.data.get("charge_limitation") == "SOC":
             payload = str(2)
             topic2 = f"{call.data.get('mqtt_prefix')}/config/set/sofort/lp/{call.data.get('charge_point_id')}/socToChargeTo"
             payload2 = str(call.data.get("required_soc"))
-            hass.components.mqtt.publish(hass, topic, payload)
-            hass.components.mqtt.publish(hass, topic2, payload2)
+            mqtt.publish(hass, topic, payload)
+            mqtt.publish(hass, topic2, payload2)
 
     def fun_change_charge_current_per_cp(call):
         """Set the charge current per loading point --> config/set/sofort/lp/#/current [value in A]."""
@@ -80,7 +81,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         _LOGGER.debug("topic (fun_change_charge_current_per_cp): %s", topic)
 
         payload = str(call.data.get("target_current"))
-        hass.components.mqtt.publish(hass, topic, payload)
+        mqtt.publish(hass, topic, payload)
 
     def fun_enable_disable_price_based_charging(call):
         """Enable or disable price-based charging for charge point # --> set/lp#/etBasedCharging [0,1]."""
@@ -89,18 +90,18 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
         if call.data.get("selected_status") == "On":
             payload = str(1)
-            hass.components.mqtt.publish(hass, topic, payload)
+            mqtt.publish(hass, topic, payload)
 
         else:
             payload = str(0)
-            hass.components.mqtt.publish(hass, topic, payload)
+            mqtt.publish(hass, topic, payload)
 
     def fun_change_pricebased_price(call):
         """Change the price for price-based charging"""
         topic = f"{call.data.get('mqtt_prefix')}/set/awattar/MaxPriceForCharging"
         _LOGGER.debug("topic (change_pricebased_price): %s", topic)
         _LOGGER.debug(f"set price to: {call.data.get('target_price')}")
-        hass.components.mqtt.publish(hass, topic, call.data.get("target_price"))
+        mqtt.publish(hass, topic, call.data.get("target_price"))
 
     # Register our services with Home Assistant.
     hass.services.async_register(DOMAIN, "enable_disable_cp", fun_enable_disable_cp)
