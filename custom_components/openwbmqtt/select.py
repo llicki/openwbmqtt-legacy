@@ -138,11 +138,11 @@ class openwbSelect(OpenWBBaseEntity, SelectEntity):
         But the HA sensor shall only change when the MQTT message on the /get/ topic is received.
         Only then, openWB has changed the setting as well.
         """
-        self.publishToMQTT(option)
+        await self.publishToMQTT(option)
         # self._attr_current_option = option
         # self.async_write_ha_state()
 
-    def publishToMQTT(self, commandValueToPublish):
+    async def publishToMQTT(self, commandValueToPublish):
         """Publish data to MQTT."""
         topic = f"{self.entity_description.mqttTopicCommand}"
         _LOGGER.debug("MQTT topic: %s", topic)
@@ -154,4 +154,4 @@ class openwbSelect(OpenWBBaseEntity, SelectEntity):
             publish_mqtt_message = False
 
         if publish_mqtt_message:
-            self.hass.components.mqtt.publish(self.hass, topic, payload)
+            mqtt.publish(self.hass, topic, payload)
